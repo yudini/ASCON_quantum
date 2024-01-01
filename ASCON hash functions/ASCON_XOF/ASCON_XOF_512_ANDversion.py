@@ -108,37 +108,38 @@ def Substitution_Layer(eng,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_a
         CNOT | (x3[i], new_ancilla_x3[i])
         CNOT | (x4[i], new_ancilla_x4[i])
 
-    with Compute(eng):
-        for i in range(64):
-            X | ancilla_x0[i]
-            X | ancilla_x1[i]
-            X | ancilla_x2[i]
-            X | ancilla_x3[i]
-            X | ancilla_x4[i]
+    # with Compute(eng):
+    #     for i in range(64):
+    #         X | ancilla_x0[i]
+    #         X | ancilla_x1[i]
+    #         X | ancilla_x2[i]
+    #         X | ancilla_x3[i]
+    #         X | ancilla_x4[i]
+
 
     for i in range(64):
-        AND_gate_dag(eng, ancilla_x1[i], new_ancilla_x2[i], x0[i])
+        AND_gate_dag(eng, new_ancilla_x1[i], ancilla_x2[i], x0[i])
     for i in range(64):
-        AND_gate_dag(eng, ancilla_x2[i], new_ancilla_x3[i], x1[i])
+        AND_gate_dag(eng, new_ancilla_x2[i], ancilla_x3[i], x1[i])
     for i in range(64):
-        AND_gate_dag(eng, ancilla_x3[i], new_ancilla_x4[i], x2[i])
+        AND_gate_dag(eng, new_ancilla_x3[i], ancilla_x4[i], x2[i])
     for i in range(64):
-        AND_gate_dag(eng, ancilla_x0[i], new_ancilla_x1[i], x4[i])
+        AND_gate_dag(eng, new_ancilla_x0[i], ancilla_x1[i], x4[i])
     for i in range(64):
-        AND_gate_dag(eng, ancilla_x4[i], new_ancilla_x0[i], x3[i])
+        AND_gate_dag(eng, new_ancilla_x4[i], ancilla_x0[i], x3[i])
 
     # for i in range(64):
-    #     AND_gate(eng, ancilla_x1[i], new_ancilla_x2[i], x0[i], new_x0[i])
+    #     AND_gate(eng, new_ancilla_x1[i], ancilla_x2[i], x0[i], new_x0[i])
     # for i in range(64):
-    #     AND_gate(eng, ancilla_x2[i], new_ancilla_x3[i], x1[i], new_x1[i])
+    #     AND_gate(eng, new_ancilla_x2[i], ancilla_x3[i], x1[i], new_x1[i])
     # for i in range(64):
-    #     AND_gate(eng, ancilla_x3[i], new_ancilla_x4[i], x2[i], new_x2[i])
+    #     AND_gate(eng, new_ancilla_x3[i], ancilla_x4[i], x2[i], new_x2[i])
     # for i in range(64):
-    #     AND_gate(eng, ancilla_x0[i], new_ancilla_x1[i], x4[i], new_x3[i])
+    #     AND_gate(eng, new_ancilla_x0[i], ancilla_x1[i], x4[i], new_x3[i])
     # for i in range(64):
-    #     AND_gate(eng, ancilla_x4[i], new_ancilla_x0[i], x3[i], new_x4[i])
+    #     AND_gate(eng, new_ancilla_x4[i], ancilla_x0[i], x3[i], new_x4[i])
 
-    Uncompute(eng)
+    #Uncompute(eng)
 
     for i in range(64):
         CNOT | (ancilla_x0[i], new_ancilla_x0[i])
@@ -233,6 +234,13 @@ def main(eng, M_value, len):
     S_constant_XOR(eng, S[3], x3)
     S_constant_XOR(eng, S[4], x4)
 
+    for i in range(64):
+        X | new_ancilla_x0[i]
+        X | new_ancilla_x1[i]
+        X | new_ancilla_x2[i]
+        X | new_ancilla_x3[i]
+        X | new_ancilla_x4[i]
+
     # Absorbing
 
     for number in range(l):
@@ -277,14 +285,14 @@ count =0
 # eng = MainEngine(Simulate)
 # resource_check = 0
 #
-# main(eng, 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f,256)
+# main(eng, 0x000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F,512)
 
 print('Estimate cost...')
 Resource = ResourceCounter()
 eng = MainEngine(Resource)
 resource_check = 1
 AND_check = 0
-main(eng, 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f,256)
+main(eng, 0x000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F202122232425262728292A2B2C2D2E2F303132333435363738393A3B3C3D3E3F,512)
 print(Resource)
 print(count)
 print('\n')
