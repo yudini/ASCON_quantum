@@ -80,15 +80,16 @@ def add_constant(eng,x2,i):
     Constant= [0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87, 0x78, 0x69, 0x5a, 0x4b]
     S_constant_XOR(eng,Constant[i],x2)
 
-def Substitution_Layer(eng,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3, new_ancilla_x4,new_x0,new_x1,new_x2,new_x3,new_x4):
-
-    global count
-    count +=1
+def Substitution_Layer(eng, x0, x1, x2, x3, x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3,
+                           new_ancilla_x4, new_x0, new_x1, new_x2, new_x3, new_x4):
+    # global count
+    # count +=1
     ancilla_x0 = eng.allocate_qureg(64)
     ancilla_x1 = eng.allocate_qureg(64)
     ancilla_x2 = eng.allocate_qureg(64)
     ancilla_x3 = eng.allocate_qureg(64)
     ancilla_x4 = eng.allocate_qureg(64)
+
 
     for i in range(64):
         CNOT | (x4[i], x0[i])
@@ -96,64 +97,60 @@ def Substitution_Layer(eng,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_a
         CNOT | (x3[i], x4[i])
 
     for i in range(64):
-        CNOT | (x0[i], ancilla_x0[i])
-        CNOT | (x1[i], ancilla_x1[i])
-        CNOT | (x2[i], ancilla_x2[i])
-        CNOT | (x3[i], ancilla_x3[i])
-        CNOT | (x4[i], ancilla_x4[i])
-
         CNOT | (x0[i], new_ancilla_x0[i])
         CNOT | (x1[i], new_ancilla_x1[i])
         CNOT | (x2[i], new_ancilla_x2[i])
         CNOT | (x3[i], new_ancilla_x3[i])
         CNOT | (x4[i], new_ancilla_x4[i])
 
-    # with Compute(eng):
-    #     for i in range(64):
-    #         X | ancilla_x0[i]
-    #         X | ancilla_x1[i]
-    #         X | ancilla_x2[i]
-    #         X | ancilla_x3[i]
-    #         X | ancilla_x4[i]
+
+    for i in range(64):
+        AND_gate(eng, new_ancilla_x1[i], x2[i], ancilla_x0[i],new_x0[i])
+    for i in range(64):
+        AND_gate(eng, new_ancilla_x2[i], x3[i], ancilla_x1[i],new_x1[i])
+    for i in range(64):
+        AND_gate(eng, new_ancilla_x3[i], x4[i], ancilla_x2[i],new_x2[i])
+    for i in range(64):
+        AND_gate(eng, new_ancilla_x0[i], x1[i], ancilla_x4[i],new_x3[i])
+    for i in range(64):
+        AND_gate(eng, new_ancilla_x4[i],x0[i], ancilla_x3[i], new_x4[i])
+
+    # for i in range(64):
+    #     AND_gate_dag(eng, new_ancilla_x1[i], x2[i], ancilla_x0[i])
+    # for i in range(64):
+    #     AND_gate_dag(eng, new_ancilla_x2[i], x3[i], ancilla_x1[i])
+    # for i in range(64):
+    #     AND_gate_dag(eng, new_ancilla_x3[i], x4[i], ancilla_x2[i])
+    # for i in range(64):
+    #     AND_gate_dag(eng, new_ancilla_x0[i], x1[i], ancilla_x4[i])
+    # for i in range(64):
+    #     AND_gate_dag(eng, new_ancilla_x4[i], x0[i], ancilla_x3[i])
 
 
     for i in range(64):
-        AND_gate_dag(eng, new_ancilla_x1[i], ancilla_x2[i], x0[i])
-    for i in range(64):
-        AND_gate_dag(eng, new_ancilla_x2[i], ancilla_x3[i], x1[i])
-    for i in range(64):
-        AND_gate_dag(eng, new_ancilla_x3[i], ancilla_x4[i], x2[i])
-    for i in range(64):
-        AND_gate_dag(eng, new_ancilla_x0[i], ancilla_x1[i], x4[i])
-    for i in range(64):
-        AND_gate_dag(eng, new_ancilla_x4[i], ancilla_x0[i], x3[i])
-
-    # for i in range(64):
-    #     AND_gate(eng, new_ancilla_x1[i], ancilla_x2[i], x0[i], new_x0[i])
-    # for i in range(64):
-    #     AND_gate(eng, new_ancilla_x2[i], ancilla_x3[i], x1[i], new_x1[i])
-    # for i in range(64):
-    #     AND_gate(eng, new_ancilla_x3[i], ancilla_x4[i], x2[i], new_x2[i])
-    # for i in range(64):
-    #     AND_gate(eng, new_ancilla_x0[i], ancilla_x1[i], x4[i], new_x3[i])
-    # for i in range(64):
-    #     AND_gate(eng, new_ancilla_x4[i], ancilla_x0[i], x3[i], new_x4[i])
-
+        CNOT | (x0[i], ancilla_x0[i])
+        CNOT | (x1[i], ancilla_x1[i])
+        CNOT | (x2[i], ancilla_x2[i])
+        CNOT | (x3[i], ancilla_x3[i])
+        CNOT | (x4[i], ancilla_x4[i])
     #Uncompute(eng)
 
     for i in range(64):
-        CNOT | (ancilla_x0[i], new_ancilla_x0[i])
-        CNOT | (ancilla_x1[i], new_ancilla_x1[i])
-        CNOT | (ancilla_x2[i], new_ancilla_x2[i])
-        CNOT | (ancilla_x3[i], new_ancilla_x3[i])
-        CNOT | (ancilla_x4[i], new_ancilla_x4[i])
+        CNOT | (x0[i], new_ancilla_x0[i])
+        CNOT | (x1[i], new_ancilla_x1[i])
+        CNOT | (x2[i], new_ancilla_x2[i])
+        CNOT | (x3[i], new_ancilla_x3[i])
+        CNOT | (x4[i], new_ancilla_x4[i])
 
     for i in range(64):
-        CNOT | (x0[i],x1[i])
-        CNOT | (x2[i],x3[i])
+        CNOT | (ancilla_x0[i],ancilla_x1[i])
+        CNOT | (ancilla_x2[i],ancilla_x3[i])
     for i in range(64):
-        CNOT | (x4[i],x0[i])
-        X | x2[i]
+        CNOT | (ancilla_x4[i],ancilla_x0[i])
+        X | ancilla_x2[i]
+
+
+    return ancilla_x0,ancilla_x1,ancilla_x2,ancilla_x3,ancilla_x4
 
 def LinearDiffusion_Layer(eng,x0,x1,x2,x3,x4,new_x0,new_x1,new_x2,new_x3,new_x4):
     for i in range(64):
@@ -190,7 +187,7 @@ def Permutation_a(eng,pa,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_anc
         new_x4 = eng.allocate_qureg(64)
 
         add_constant(eng,x2,i)
-        Substitution_Layer(eng, x0, x1, x2, x3, x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3,new_ancilla_x4, new_x0, new_x1, new_x2, new_x3, new_x4)  # correct
+        x0,x1,x2,x3,x4=Substitution_Layer(eng, x0, x1, x2, x3, x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3,new_ancilla_x4, new_x0, new_x1, new_x2, new_x3, new_x4)  # correct
         LinearDiffusion_Layer(eng, x0, x1, x2, x3, x4, new_x0, new_x1, new_x2, new_x3, new_x4)
 def main(eng, M_value, len):
 
