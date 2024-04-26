@@ -90,6 +90,16 @@ def add_constant(eng,x2,i):
     Constant= [0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87, 0x78, 0x69, 0x5a, 0x4b]
     S_constant_XOR(eng,Constant[i],x2)
 
+def AND_gate_dag(eng, a, b, c):
+    H | b
+    CNOT | (a, b)
+    X | c
+
+    with Dagger(eng):
+        Measure | c
+    H | b
+    H | c
+
 def Substitution_Layer(eng,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3, new_ancilla_x4):
 
     # global count
@@ -101,48 +111,29 @@ def Substitution_Layer(eng,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_a
     ancilla_x4 = eng.allocate_qureg(64)
 
     for i in range(64):
+        X | new_ancilla_x0[i]
+        X | new_ancilla_x1[i]
+        X | new_ancilla_x2[i]
+        X | new_ancilla_x3[i]
+        X | new_ancilla_x4[i]
+
+    for i in range(64):
         CNOT | (x4[i], x0[i])
         CNOT | (x1[i], x2[i])
         CNOT | (x3[i], x4[i])
 
     for i in range(64):
-        CNOT | (x0[i], ancilla_x0[i])
-        CNOT | (x1[i], ancilla_x1[i])
-        CNOT | (x2[i], ancilla_x2[i])
-        CNOT | (x3[i], ancilla_x3[i])
-        CNOT | (x4[i], ancilla_x4[i])
-
         CNOT | (x0[i], new_ancilla_x0[i])
         CNOT | (x1[i], new_ancilla_x1[i])
         CNOT | (x2[i], new_ancilla_x2[i])
         CNOT | (x3[i], new_ancilla_x3[i])
         CNOT | (x4[i], new_ancilla_x4[i])
 
-    with Compute(eng):
-        for i in range(64):
-            X | new_ancilla_x0[i]
-            X | new_ancilla_x1[i]
-            X | new_ancilla_x2[i]
-            X | new_ancilla_x3[i]
-            X | new_ancilla_x4[i]
-
-            # X | ancilla_x0[i]
-            # X | ancilla_x1[i]
-            # X | ancilla_x2[i]
-            # X | ancilla_x3[i]
-            # X | ancilla_x4[i]
-
-
-    # for i in range(64):
-    #     Toffoli_gate(eng, ancilla_x1[i], new_ancilla_x2[i], x0[i])
-    # for i in range(64):
-    #     Toffoli_gate(eng, ancilla_x2[i], new_ancilla_x3[i], x1[i])
-    # for i in range(64):
-    #     Toffoli_gate(eng, ancilla_x3[i], new_ancilla_x4[i], x2[i])
-    # for i in range(64):
-    #     Toffoli_gate(eng, ancilla_x0[i], new_ancilla_x1[i], x4[i])
-    # for i in range(64):
-    #     Toffoli_gate(eng, ancilla_x4[i], new_ancilla_x0[i], x3[i])
+        CNOT | (x0[i], ancilla_x0[i])
+        CNOT | (x1[i], ancilla_x1[i])
+        CNOT | (x2[i], ancilla_x2[i])
+        CNOT | (x3[i], ancilla_x3[i])
+        CNOT | (x4[i], ancilla_x4[i])
 
 
     for i in range(64):
@@ -155,8 +146,19 @@ def Substitution_Layer(eng,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_a
         Toffoli_gate(eng, new_ancilla_x0[i], ancilla_x1[i], x4[i])
     for i in range(64):
         Toffoli_gate(eng, new_ancilla_x4[i],ancilla_x0[i], x3[i])
+    #
+    # for i in range(64):
+    #     AND_gate_dag(eng, new_ancilla_x1[i], ancilla_x2[i], x0[i])
+    # for i in range(64):
+    #     AND_gate_dag(eng, new_ancilla_x2[i], ancilla_x3[i], x1[i])
+    # for i in range(64):
+    #     AND_gate_dag(eng, new_ancilla_x3[i], ancilla_x4[i], x2[i])
+    # for i in range(64):
+    #     AND_gate_dag(eng, new_ancilla_x0[i], ancilla_x1[i], x4[i])
+    # for i in range(64):
+    #     AND_gate_dag(eng, new_ancilla_x4[i], ancilla_x0[i], x3[i])
 
-    Uncompute(eng)
+    #Uncompute(eng)
 
     for i in range(64):
         CNOT | (ancilla_x0[i], new_ancilla_x0[i])
@@ -214,20 +216,20 @@ global resource_check
 global AND_check
 global count
 count =0
-print('Generate Ciphertext...')
-Simulate = ClassicalSimulator()
-eng = MainEngine(Simulate)
-resource_check = 0
-main(eng, 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f,256)
+# print('Generate Ciphertext...')
+# Simulate = ClassicalSimulator()
+# eng = MainEngine(Simulate)
+# resource_check = 0
+# main(eng, 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f,256)
 #main(eng, 0x000102030405060708090a0b0c0d0e0f,128)
 
-# print('Estimate cost...')
-# Resource = ResourceCounter()
-# eng = MainEngine(Resource)
-# resource_check = 1
-# AND_check = 1
-# main(eng, 0x201f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100, 256)
-# print(Resource)
-# print(count)
-# print('\n')
+print('Estimate cost...')
+Resource = ResourceCounter()
+eng = MainEngine(Resource)
+resource_check = 1
+AND_check = 0
+main(eng, 0x201f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100, 256)
+print(Resource)
+print(count)
+print('\n')
 eng.flush()

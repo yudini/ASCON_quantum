@@ -34,7 +34,8 @@ def print_hex(eng, qubits, len):
 
 def Toffoli_gate(eng, a, b, c):
     #
-    #Toffoli | (a, b, c)
+    #
+    Toffoli | (a, b, c)
 
     if (resource_check):
         if (AND_check):
@@ -106,39 +107,39 @@ def Substitution_Layer(eng,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_a
         CNOT | (x3[i], x4[i])
 
     for i in range(64):
-        CNOT | (x0[i], new_ancilla_x0[i])
-        CNOT | (x1[i], new_ancilla_x1[i])
-        CNOT | (x2[i], new_ancilla_x2[i])
-        CNOT | (x3[i], new_ancilla_x3[i])
-        CNOT | (x4[i], new_ancilla_x4[i])
-
         CNOT | (x0[i], ancilla_x0[i])
         CNOT | (x1[i], ancilla_x1[i])
         CNOT | (x2[i], ancilla_x2[i])
         CNOT | (x3[i], ancilla_x3[i])
         CNOT | (x4[i], ancilla_x4[i])
 
+        CNOT | (x0[i], new_ancilla_x0[i])
+        CNOT | (x1[i], new_ancilla_x1[i])
+        CNOT | (x2[i], new_ancilla_x2[i])
+        CNOT | (x3[i], new_ancilla_x3[i])
+        CNOT | (x4[i], new_ancilla_x4[i])
+
     with Compute(eng):
         for i in range(64):
-            X | new_ancilla_x0[i]
-            X | new_ancilla_x1[i]
-            X | new_ancilla_x2[i]
-            X | new_ancilla_x3[i]
-            X | new_ancilla_x4[i]
+            X | ancilla_x0[i]
+            X | ancilla_x1[i]
+            X | ancilla_x2[i]
+            X | ancilla_x3[i]
+            X | ancilla_x4[i]
 
 
     for i in range(64):
-        Toffoli_gate(eng, new_ancilla_x1[i], ancilla_x2[i], x0[i])
+        Toffoli_gate(eng, ancilla_x1[i], new_ancilla_x2[i], x0[i])
     for i in range(64):
-        Toffoli_gate(eng, new_ancilla_x2[i], ancilla_x3[i], x1[i])
+        Toffoli_gate(eng, ancilla_x2[i], new_ancilla_x3[i], x1[i])
     for i in range(64):
-        Toffoli_gate(eng, new_ancilla_x3[i], ancilla_x4[i], x2[i])
+        Toffoli_gate(eng, ancilla_x3[i], new_ancilla_x4[i], x2[i])
     for i in range(64):
-        Toffoli_gate(eng, new_ancilla_x0[i], ancilla_x1[i], x4[i])
+        Toffoli_gate(eng, ancilla_x0[i], new_ancilla_x1[i], x4[i])
     for i in range(64):
-        Toffoli_gate(eng, new_ancilla_x4[i],ancilla_x0[i], x3[i])
+        Toffoli_gate(eng, ancilla_x4[i], new_ancilla_x0[i], x3[i])
 
-    #Uncompute(eng)
+    Uncompute(eng)
 
     for i in range(64):
         CNOT | (ancilla_x0[i], new_ancilla_x0[i])
@@ -196,11 +197,11 @@ global resource_check
 global AND_check
 global count
 count =0
-# print('Generate Ciphertext...')
-# Simulate = ClassicalSimulator()
-# eng = MainEngine(Simulate)
-# resource_check = 0
-# main(eng, 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f,256)
+print('Generate Ciphertext...')
+Simulate = ClassicalSimulator()
+eng = MainEngine(Simulate)
+resource_check = 0
+main(eng, 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f,256)
 # main(eng, 0x000102030405060708090a0b0c0d0e0f,128)
 
 print('Estimate cost...')
