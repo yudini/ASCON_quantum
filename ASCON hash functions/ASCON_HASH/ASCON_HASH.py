@@ -34,45 +34,45 @@ def print_hex(eng, qubits, len):
 
 def Toffoli_gate(eng, a, b, c):
     #
-    Toffoli | (a, b, c)
+    #Toffoli | (a, b, c)
 
-    # if (resource_check):
-    #     if (AND_check):
-    #         ancilla = eng.allocate_qubit()
-    #         H | c
-    #         CNOT | (b, ancilla)
-    #         CNOT | (c, a)
-    #         CNOT | (c, b)
-    #         CNOT | (a, ancilla)
-    #         Tdag | a
-    #         Tdag | b
-    #         T | c
-    #         T | ancilla
-    #         CNOT | (a, ancilla)
-    #         CNOT | (c, b)
-    #         CNOT | (c, a)
-    #         CNOT | (b, ancilla)
-    #         H | c
-    #         S | c
-    #
-    #     else:
-    #         Tdag | a
-    #         Tdag | b
-    #         H | c
-    #         CNOT | (c, a)
-    #         T | a
-    #         CNOT | (b, c)
-    #         CNOT | (b, a)
-    #         T | c
-    #         Tdag | a
-    #         CNOT | (b, c)
-    #         CNOT | (c, a)
-    #         T | a
-    #         Tdag | c
-    #         CNOT | (b, a)
-    #         H | c
-    # else:
-    #     Toffoli | (a, b, c)
+    if (resource_check):
+        if (AND_check):
+            ancilla = eng.allocate_qubit()
+            H | c
+            CNOT | (b, ancilla)
+            CNOT | (c, a)
+            CNOT | (c, b)
+            CNOT | (a, ancilla)
+            Tdag | a
+            Tdag | b
+            T | c
+            T | ancilla
+            CNOT | (a, ancilla)
+            CNOT | (c, b)
+            CNOT | (c, a)
+            CNOT | (b, ancilla)
+            H | c
+            S | c
+
+        else:
+            Tdag | a
+            Tdag | b
+            H | c
+            CNOT | (c, a)
+            T | a
+            CNOT | (b, c)
+            CNOT | (b, a)
+            T | c
+            Tdag | a
+            CNOT | (b, c)
+            CNOT | (c, a)
+            T | a
+            Tdag | c
+            CNOT | (b, a)
+            H | c
+    else:
+        Toffoli | (a, b, c)
 def Message_XOR(eng, constant, qubit, len):
     for i in range(len): #length
         if(constant & 1 == 1 ):
@@ -92,8 +92,8 @@ def add_constant(eng,x2,i):
 
 def Substitution_Layer(eng,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3, new_ancilla_x4):
 
-    # global count
-    # count +=1
+    global count
+    count +=1
     ancilla_x0 = eng.allocate_qureg(64)
     ancilla_x1 = eng.allocate_qureg(64)
     ancilla_x2 = eng.allocate_qureg(64)
@@ -189,19 +189,17 @@ def Permutation_a(eng,pa,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_anc
 
     for i in range(pa):
         add_constant(eng,x2,i)
-        # if (resource_check != 1):
-        #     print_state(eng, x0, 16)
-        #     print_state(eng, x1, 16)
-        #     print_state(eng, x2, 16)
-        #     print_state(eng, x3, 16)
-        #     print_state(eng, x4, 16)
         Substitution_Layer(eng,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3, new_ancilla_x4)    #correct
         LinearDiffusion_Layer(eng,x0,x1,x2,x3,x4)
 def main(eng, M_value, len):
 
     M = eng.allocate_qureg(len)
-    Message_XOR(eng, M_value, M, len)
-    Hash = eng.allocate_qureg(len)
+
+    h_len = 256
+    if(resource_check !=1):
+        Message_XOR(eng, M_value, M, len)
+
+    Hash = eng.allocate_qureg(h_len)
 
     x0 = eng.allocate_qureg(64)
     x1 = eng.allocate_qureg(64)
@@ -237,14 +235,14 @@ def main(eng, M_value, len):
 
     # Absorbing
 
-    for number in range(l):
-        if(number != l-1):   # 0,1,2,3
+    for number in range(l): # l=3
+        if(number != l-1):   # 0,1,
             for i in range(64):
                 CNOT | (M[len - (64*(number+1)) + i], x0[i])
 
             Permutation_a(eng,pa,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3, new_ancilla_x4)
 
-        else :   #4
+        else :   #2
             left_len = len-64*number    #0
             start = 64-left_len         #64
             for i in range(left_len):
@@ -256,11 +254,12 @@ def main(eng, M_value, len):
 
     #Squeezing
 
-    for i in range(4):
+    for i in range(int(h_len/64)): # 4/
         for j in range(64):
-            CNOT | (x0[j],Hash[64*i+j])
+            CNOT | (x0[j],Hash[64*(int(h_len/64)-1-i)+j])
 
-        Permutation_a(eng, pa, x0, x1, x2, x3, x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3, new_ancilla_x4)
+        if (i != int(h_len / 64) - 1):
+            Permutation_a(eng, pa, x0, x1, x2, x3, x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3, new_ancilla_x4)
 
     if(resource_check!=1):
         print_state(eng,Hash,64)
@@ -278,20 +277,19 @@ global resource_check
 global AND_check
 global count
 count =0
-print('Generate Ciphertext...')
-Simulate = ClassicalSimulator()
-eng = MainEngine(Simulate)
-resource_check = 0
-#main(eng, 0x1f1e1d1c1b1a191817161514131211101f0e0d0c0b0a09080706050403020100, 256)
-main(eng, 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f,256)
+# print('Generate Ciphertext...')
+# Simulate = ClassicalSimulator()
+# eng = MainEngine(Simulate)
+# resource_check = 0
+# #main(eng, 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f,256)
+# main(eng, 0x000102030405060708090a0b0c0d0e0f,128)
 
 print('Estimate cost...')
 Resource = ResourceCounter()
 eng = MainEngine(Resource)
 resource_check = 1
 AND_check = 0
-main(eng, 0x201f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100, 256)
+main(eng, 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f,256)
 print(Resource)
-print(count)
 print('\n')
 eng.flush()
