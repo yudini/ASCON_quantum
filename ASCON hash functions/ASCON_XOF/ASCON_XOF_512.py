@@ -73,6 +73,8 @@ def Toffoli_gate(eng, a, b, c):
             H | c
     else:
         Toffoli | (a, b, c)
+
+
 def Message_XOR(eng, constant, qubit, len):
     for i in range(len): #length
         if(constant & 1 == 1 ):
@@ -92,8 +94,8 @@ def add_constant(eng,x2,i):
 
 def Substitution_Layer(eng,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3, new_ancilla_x4):
 
-    # global count
-    # count +=1
+    global count
+    count +=1
     ancilla_x0 = eng.allocate_qureg(64)
     ancilla_x1 = eng.allocate_qureg(64)
     ancilla_x2 = eng.allocate_qureg(64)
@@ -200,8 +202,12 @@ def Permutation_a(eng,pa,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_anc
 def main(eng, M_value, len):
 
     M = eng.allocate_qureg(len)
-    Message_XOR(eng, M_value, M, len)
-    Hash = eng.allocate_qureg(len)
+    h_len = 512
+
+    if(resource_check !=1):
+        Message_XOR(eng, M_value, M, len)
+
+    Hash = eng.allocate_qureg(h_len)
 
     x0 = eng.allocate_qureg(64)
     x1 = eng.allocate_qureg(64)
@@ -224,7 +230,7 @@ def main(eng, M_value, len):
     pa = 12
 
     # Initialization
-    S = (0xee9398aadb67f03d, 0x8bb21831c60f1002, 0xb48a92db98d5da62, 0x43189921b8f8e3e8, 0x348fa5c9d525e140)
+    S = (0xb57e273b814cd416, 0x2b51042562ae2420, 0x66a3a7768ddf2218, 0x5aad0a7a8153650c, 0x4f3e0e32539493b6)
 
     # S => x0 | x1 | x2 | x3 | x4
     # x0 => S_r , x1 | x2 | x3 | X4 => S_c
@@ -236,13 +242,6 @@ def main(eng, M_value, len):
     S_constant_XOR(eng, S[4], x4)
 
     # Absorbing
-    # l=5 number = 0~4   permutation nubmer= 5
-    for number in range(4):
-        for i in range(64):
-            CNOT | (M[len - (64*(number+1)) + i], x0[i])
-
-        Permutation_a(eng, pa, x0, x1, x2, x3, x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3,
-                      new_ancilla_x4)
 
     for number in range(l):
         if(number != l-1):   # 0,1,2,3
@@ -250,12 +249,6 @@ def main(eng, M_value, len):
                 CNOT | (M[len - (64*(number+1)) + i], x0[i])
 
             Permutation_a(eng,pa,x0,x1,x2,x3,x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3, new_ancilla_x4)
-            # if (resource_check != 1):
-            #     print_state(eng, x0, 16)
-            #     print_state(eng, x1, 16)
-            #     print_state(eng, x2, 16)
-            #     print_state(eng, x3, 16)
-            #     print_state(eng, x4, 16)
 
         else :   #4
             left_len = len-64*number    #0
@@ -269,29 +262,19 @@ def main(eng, M_value, len):
 
     #Squeezing
 
-    # print("HASH")
-    # Msg = 000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F      20
-    #2A4F6F2B6B3EC2A6C47BA08D18C8EA561B493C13CCB35803FA8B9FB00A0F1F35
-
-    #2A4F6F2B6B3EC2A6
-    #C47BA08D18C8EA56
-    #1B493C13CCB35803
-    #FA8B9FB00A0F1F35
-
-    for i in range(4):
-        # print_state(eng,x0,16)
-        # # All(Measure) | x0
-        # # for i in range(64):
-        # #     print(int(x0[63 - i]), end='')
-        # print('\n')
+    for i in range(int(h_len/64)):
         for j in range(64):
-            CNOT | (x0[j],Hash[64*i+j])
+            CNOT | (x0[j],Hash[64*(int(h_len/64)-1-i)+j])
 
-        Permutation_a(eng, pa, x0, x1, x2, x3, x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3, new_ancilla_x4)
-
+        if (i != int(h_len/ 64) - 1):
+            Permutation_a(eng, pa, x0, x1, x2, x3, x4, new_ancilla_x0, new_ancilla_x1, new_ancilla_x2, new_ancilla_x3, new_ancilla_x4)
 
     if(resource_check!=1):
-        print_state(eng,Hash,64)
+        #print_state(eng,Hash,64)
+        print_state(eng, Hash, 128)
+
+    # Msg = 000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F
+    # MD = 0B8E325B9BBF1BB43E77AA1EED93BEE62B4EA1E4B0C5A696B2F5C5B09C968918
 
 global resource_check
 global AND_check
@@ -301,7 +284,7 @@ count =0
 # Simulate = ClassicalSimulator()
 # eng = MainEngine(Simulate)
 # resource_check = 0
-# #main(eng, 0x1f1e1d1c1b1a191817161514131211101f0e0d0c0b0a09080706050403020100, 256)
+#
 # main(eng, 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f,256)
 
 print('Estimate cost...')
@@ -309,7 +292,7 @@ Resource = ResourceCounter()
 eng = MainEngine(Resource)
 resource_check = 1
 AND_check = 0
-main(eng, 0x201f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020100, 256)
+main(eng, 0x000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f,256)
 print(Resource)
 print(count)
 print('\n')
