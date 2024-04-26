@@ -68,45 +68,6 @@ def main(eng):
         # Round_constant_XOR(eng, A, 0x00010203, 32)
         # Round_constant_XOR(eng, pt, 0x00010203, 32)
 
-    def main(eng):
-        pa = 12
-        pb = 6
-        A_len = 64
-        pt_len = 64
-
-        # S => IV || K || nonce   320 bits
-        IV = eng.allocate_qureg(64)  # fixed
-        K = eng.allocate_qureg(128)
-        Nonce = eng.allocate_qureg(128)  # the fixed nonce
-        key = eng.allocate_qureg(128)
-        A = eng.allocate_qureg(32)
-        pt = eng.allocate_qureg(32)
-        ct = eng.allocate_qureg(32)
-
-        new_ancilla_x0 = eng.allocate_qureg(64)
-        new_ancilla_x1 = eng.allocate_qureg(64)
-        new_ancilla_x2 = eng.allocate_qureg(64)
-        new_ancilla_x3 = eng.allocate_qureg(64)
-        new_ancilla_x4 = eng.allocate_qureg(64)
-
-        if (resource_check != 1):
-            Round_constant_XOR(eng, IV, 0x80400c0600000000, 64)
-            Round_constant_XOR(eng, K, 0x000102030405060708090a0b0c0d0e0f, 128)
-            Round_constant_XOR(eng, key, 0x000102030405060708090a0b0c0d0e0f, 128)
-            Round_constant_XOR(eng, Nonce, 0x000102030405060708090a0b0c0d0e0f, 128)
-            Round_constant_XOR(eng, A, 0x00010203, 32)
-            Round_constant_XOR(eng, pt, 0x00010203, 32)
-
-        S = []
-        for i in range(128):
-            S.append(Nonce[i])
-        for i in range(128):
-            S.append(K[i])
-        for i in range(64):
-            S.append(IV[i])
-
-        LinearDiffusion_Layer(eng, S[256:320], S[192:256], S[128:192], S[64:128], S[0:64])
-
     S = []
     for i in range(128):
         S.append(Nonce[i])
